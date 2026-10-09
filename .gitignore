@@ -1,0 +1,10 @@
+# We arent supposed to commit full dataset and training
+dataset/
+models/
+results/
+
+#Just external files such as task sheet and starter code
+reference/
+
+.vscode/
+__pycache__/
