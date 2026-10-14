@@ -12,10 +12,16 @@ The intended user, prototype purpose, and 3–5 testable acceptance criteria add
 
 ### 2. Model Choice & Course Concepts
 The proposed dataset configuration, model architecture, chosen difficulty band, and how course concepts and literature support the choices.
-- **Proposed Dataset Configuration**
+- **Proposed Dataset Configuration**: use LAB colour space representation
 - **Model Architecture**
 - **Chosen Difficulty**: Hard
 - **How course concepts and literature support these choices**
+
+Lab colourspace? what is that?
+https://en.wikipedia.org/wiki/CIELAB_color_space
+https://programmingdesignsystems.com/color/perceptually-uniform-color-spaces/
+https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_rgb_to_gray.html
+
 
 ### 3. Preliminary Feasability Evidence
 An initial data audit, baseline smoke-test experiment, or

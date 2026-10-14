@@ -11,7 +11,7 @@ Days 1–2 — Setup & Data
 
 [] Write your feasibility review (needed for tutor check-off AND README)
 
-[] Start dataset.py
+[X] Start dataset.py
 
 Days 3–4 wed-thur — Baseline
 
