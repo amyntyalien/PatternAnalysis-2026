@@ -3,6 +3,9 @@ dataset/
 models/
 results/
 
+experiments/
+samples/
+
 #Just external files such as task sheet and starter code
 reference/
 

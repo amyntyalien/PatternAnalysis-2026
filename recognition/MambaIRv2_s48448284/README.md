@@ -29,3 +29,4 @@ and a workable fallback
 
 ## AI Usage
 - Claude generated my checklist to provide step by step plan
+- GPT Luna helped with getting the project working with correct versions, using WSL for Ubuntu and other initial environment set up (the mamba install kept failing)
