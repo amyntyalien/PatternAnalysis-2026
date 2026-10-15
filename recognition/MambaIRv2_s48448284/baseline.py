@@ -24,6 +24,9 @@ from pathlib import Path
 
 from dataset import get_dataloaders, denormalise_L, denormalise_ab, lab_to_rgb
 
+import lpips
+
+loss_fn_lpips = lpips.LPIPS(net='alex')
 # CNN model
 
 class ColouriseCNN(nn.Module):
@@ -55,7 +58,7 @@ class ColouriseCNN(nn.Module):
 
 def train_model(model, train_loader, val_loader, num_epochs=100, lr = 1e-4, device='cuda'):
     model = model.to(device)
-    criterion = nn.MSELoss()
+    criterion = nn.L1Loss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     history = {'train_loss': [], 'val_loss': [], 'val_psnr': [], 'val_ssim': []}
@@ -101,7 +104,7 @@ def train_model(model, train_loader, val_loader, num_epochs=100, lr = 1e-4, devi
                     rgb_pred = lab_to_rgb(lab_pred[..., 0], lab_pred[..., 1:])
                     
                     val_psnr += psnr_fn(rgb_true, rgb_pred)
-                    val_ssim += ssim_fn(rgb_true, rgb_pred, multichannel=True)
+                    val_ssim += ssim_fn(rgb_true, rgb_pred, channel_axis=-1)
 
         val_loss /= len(val_loader.dataset)
         val_psnr /= len(val_loader.dataset)
@@ -113,7 +116,7 @@ def train_model(model, train_loader, val_loader, num_epochs=100, lr = 1e-4, devi
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            torch.save(model.state_dict(), 'best_model.pth')
+            torch.save(model.state_dict(), 'recognition/MambaIRv2_s48448284/models/best_baseline_model.pth')
         
         if (epoch + 1) % 10 == 0 or epoch == 0:
             print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val PSNR: {val_psnr:.4f}, Val SSIM: {val_ssim:.4f}')
@@ -122,12 +125,41 @@ def train_model(model, train_loader, val_loader, num_epochs=100, lr = 1e-4, devi
 
 
 # Testing
+
+def compute_lpips(rgb_true: np.ndarray, rgb_pred: np.ndarray, device='cpu') -> float:
+    # LPIPS expects (1, 3, H, W) float tensors in [-1, 1]
+    def to_tensor(img):
+        t = torch.from_numpy(img).float().permute(2, 0, 1).unsqueeze(0) / 127.5 - 1.0
+        return t.to(device)
+
+    with torch.no_grad():
+        score = loss_fn_lpips(to_tensor(rgb_true), to_tensor(rgb_pred))
+    return score.item()
+
+
+def compute_colorfulness(rgb: np.ndarray) -> float:
+    R = rgb[:, :, 0].astype(float)
+    G = rgb[:, :, 1].astype(float)
+    B = rgb[:, :, 2].astype(float)
+
+    rg = R - G
+    yb = 0.5 * (R + G) - B
+
+    std_rg,  mean_rg  = rg.std(),  rg.mean()
+    std_yb,  mean_yb  = yb.std(),  yb.mean()
+
+    std_root  = np.sqrt(std_rg**2  + std_yb**2)
+    mean_root = np.sqrt(mean_rg**2 + mean_yb**2)
+
+    return std_root + 0.3 * mean_root
+
 def test_model(model, test_loader, checkpoint_path, device='cuda'):
-    model.load_state_dict(torch.load(checkpoint_path))
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model = model.to(device)
     model.eval()
 
-    psnr_scores, ssim_scores = [], []
+    psnr_scores, ssim_scores, lpips_scores = [], [], []
+    colorfulness_pred, colorfulness_true = [], []
     with torch.no_grad():
         for L, ab in test_loader:
             L, ab = L.to(device), ab.to(device)
@@ -146,19 +178,31 @@ def test_model(model, test_loader, checkpoint_path, device='cuda'):
                 rgb_pred = lab_to_rgb(lab_pred[..., 0], lab_pred[..., 1:])
                 
                 psnr_scores.append(psnr_fn(rgb_true, rgb_pred))
-                ssim_scores.append(ssim_fn(rgb_true, rgb_pred, multichannel=True))
+                ssim_scores.append(ssim_fn(rgb_true, rgb_pred, channel_axis=-1))
+                lpips_scores.append(compute_lpips(rgb_true, rgb_pred))          
+                colorfulness_pred.append(compute_colorfulness(rgb_pred))      
+                colorfulness_true.append(compute_colorfulness(rgb_true))
 
     metrics = {
-        'psnr': np.mean(psnr_scores),
-        'ssim': np.mean(ssim_scores)
+        'psnr':               np.mean(psnr_scores),
+        'ssim':               np.mean(ssim_scores),
+        'lpips':              np.mean(lpips_scores),       # lower is better
+        'colorfulness_pred':  np.mean(colorfulness_pred),  # your model's vividness
+        'colorfulness_true':  np.mean(colorfulness_true),  # ground truth vividness
     }
-    print(f'Test PSNR: {metrics["psnr"]:.4f}, Test SSIM: {metrics["ssim"]:.4f}')
+    print(f'Test PSNR: {metrics["psnr"]:.4f}')
+    print(f'Test SSIM: {metrics["ssim"]:.4f}')
+    print(f'Test LPIPS: {metrics["lpips"]:.4f}')
+    print(f'Colorfulness — Predicted: {metrics["colorfulness_pred"]:.2f}  '
+        f'Ground Truth: {metrics["colorfulness_true"]:.2f}')
     return metrics
+
+
 
 # Visualise results
 
 def visualise_results(model, test_loader, checkpoint_path, device='cuda', num_images=5, save_path="recognition/MambaIRv2_s48448284/figures"):
-    model.load_state_dict(torch.load(checkpoint_path))
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model = model.to(device)
     model.eval()
 
@@ -167,9 +211,9 @@ def visualise_results(model, test_loader, checkpoint_path, device='cuda', num_im
     fig, axes = plt.subplots(num_images, 3, figsize=(10, 3 * num_images))
     fig.suptitle("Colourisation Results", fontsize=16)
     col_titles = ["Grayscale (L)", "Predicted (ab)", "Ground Truth (ab)"]
+    
     for ax, col in zip(axes[0], col_titles):
         ax.set_title(col, fontsize=14)
-        ax.axis('off')
 
 
     with torch.no_grad():
@@ -195,10 +239,14 @@ def visualise_results(model, test_loader, checkpoint_path, device='cuda', num_im
                 axes[i, 0].imshow(L_denorm[j][0], cmap='gray')
                 axes[i, 1].imshow(rgb_pred)
                 axes[i, 2].imshow(rgb_true)
+                
+                for ax in axes[i]:
+                    ax.axis('off')
+
+                
 
     plt.tight_layout()
     plt.savefig(f"{save_path}/base_colourisation_results.png")
-    plt.show()
 
 
 # Main
@@ -210,6 +258,6 @@ if __name__ == "__main__":
     # Initialize model
     model = ColouriseCNN()
     model, history = train_model(model, train_loader, val_loader, num_epochs=100, lr=1e-4)
-    metrics = test_model(model, test_loader, checkpoint_path='best_model.pth')
-    visualise_results(model, test_loader, checkpoint_path='best_model.pth', num_images=5)
+    metrics = test_model(model, test_loader, checkpoint_path='recognition/MambaIRv2_s48448284/models/best_baseline_model.pth')
+    visualise_results(model, test_loader, checkpoint_path='recognition/MambaIRv2_s48448284/models/best_baseline_model.pth', num_images=5)
 
