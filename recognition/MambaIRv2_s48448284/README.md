@@ -22,6 +22,7 @@ https://en.wikipedia.org/wiki/CIELAB_color_space
 https://programmingdesignsystems.com/color/perceptually-uniform-color-spaces/
 https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_rgb_to_gray.html
 
+For our first model we will use CNN "pixel-wise regression losses (MSE/L1) produce drab results"
 
 ### 3. Preliminary Feasability Evidence
 An initial data audit, baseline smoke-test experiment, or
