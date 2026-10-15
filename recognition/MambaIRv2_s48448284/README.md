@@ -3,12 +3,15 @@
 ## Feasability Check-Off
 ### 1. User Need, Scope & Acceptance Criteria
 The intended user, prototype purpose, and 3–5 testable acceptance criteria addressing the domain’s open dilemma, including an operational/resource constraint (e.g., peak VRAM, runtime).
-- **Intended User**
-- **Prototype purpose**
-- **Acceptance criteria**
-    - 
-    - 
-    -
+
+**Intended User**
+
+**Prototype purpose**
+
+**Acceptance criteria**
+    - A
+    - B
+    - C
 
 ### 2. Model Choice & Course Concepts
 The proposed dataset configuration, model architecture, chosen difficulty band, and how course concepts and literature support the choices.
@@ -28,10 +31,52 @@ For our first model we will use CNN "pixel-wise regression losses (MSE/L1) produ
 An initial data audit, baseline smoke-test experiment, or
 measured resource estimate. A fully trained final model is not required.
 
-
 ### 4. Risks, Budget & Fallback
 Key technical risks, computing budget, the next planned experiment,
 and a workable fallback
+
+## Dataset
+- for training we use BSD500
+
+## Metrics
+- Metrics are 
+
+| Metric | Ideal Value | Meaning | Formula |
+|--------|-------------|---------|---------|
+| PSNR
+| SSIM
+| LPIPS
+| Colorfulness
+
+## Baseline Model
+- A basic CNN
+- Model architecture: 
+``` TODO ```
+
+| Hyperparameter  | Value | Meaning/Reasoning |
+|-----------------|------:|-------------------|
+| number of epochs|       |   |
+| learning rate   |       |   |
+| batch size      |       |   |
+| criterion       |       |   |
+|-----------------|-------|-------------------|
+| kernel_size     |       |   |
+| stride          |       |   |
+| padding         |       |   |
+| channel sizes   |       |   |
+
+- discuss hyperparameter choices
+
+- results
+
+| Metric | Result |
+|--------|--------|
+|PSNR    | 22.6826|
+|SSIM    | 0.9131 |
+|LPIPS   | 0.2035 |
+|Colourfulness | 20.46 |
+
+- discuss results
 
 
 ## AI Usage
