@@ -48,6 +48,30 @@ and a workable fallback
 | LPIPS
 | Colorfulness
 
+## Loss Function
+
+https://arxiv.org/pdf/2204.02980
+- This paper uses L1, L2, LPIPS, WGAN + L2 and WGAN+LPIPS
+- Equations for each:
+
+| Metric | Formula | Description |
+
+- Results (what is MAE and FID?)
+- ranked best to worst in each category
+
+| Loss Function | MAE | MSE | PSNR | SSIM | LPIPS | FID |
+|---------------|-----|-----|------|------|-------|-----|
+| L1            | 3   | 5   | 5    | 1    | 3     | 5   |
+| L2            | 5   | 4   | 4    | 2    | 5     | 4   |
+| LPIPS         | 1   | 1   | 1    | 5    | 1     | 2   |
+| WGAN+L2       | 4   | 3   | 3    | 3    | 4     | 3   |
+| WGAN+LPIPS    | 2   | 2   | 2    | 4    | 2     | 1   |
+
+- for lips we need to convert to rgb to calculate
+- LPIPS performs the best though
+- The paper concludes by stating "LPIPS produces slightly better results" this is a slight difference so we could try both LPIPS and somethign that trains faster
+    - How about L1 plus saturation penalty
+
 ## Baseline Model
 - A basic CNN
 - Model architecture: 
@@ -77,6 +101,17 @@ and a workable fallback
 |Colourfulness | 20.46 |
 
 - discuss results
+
+## MambaIRv2
+- There is no colourisation model
+- it also works with rgb not lab
+- and expects 3 channel in &  3 channel out. We want 1 in (L) and 2 out (ab)
+- So we need to alter the mamba ir model
+- We could: modify the input / output layers only and keep the rest of the model pretrained
+- We also could go through all the layers trained.
+
+https://www.youtube.com/watch?v=N6Piou4oYx8
+https://www.youtube.com/watch?v=BDTVVlUU1Ck
 
 
 ## AI Usage
