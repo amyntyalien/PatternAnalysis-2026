@@ -283,8 +283,8 @@ class LPIPS_Loss(nn.Module):
 
 
 
+
 # Quick check
-#ref: 
 
 if __name__ == "__main__":
     import time
