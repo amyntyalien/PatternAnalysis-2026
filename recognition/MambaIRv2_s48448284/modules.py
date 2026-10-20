@@ -57,12 +57,12 @@ def clone():
         sys.path.insert(0, MAMBAIR_PATH)
 
 clone()
-from basicsr.archs.mambairv2_arch import MambaIRv2
+from basicsr.archs.mambairv2light_arch import MambaIRv2Light
 
 # using pretrained model for this.
 CHECKPOINT_URL = (
     "https://github.com/csguoh/MambaIR/releases/download/pretrained_weight/"
-    "mambairv2_realDN_color_gaussian15.pth"
+    "mambairv2_lightSR_x2.pth"
 )
 
 def download_checkpoint(save_path):
@@ -73,15 +73,18 @@ def download_checkpoint(save_path):
     urllib.request.urlretrieve(CHECKPOINT_URL, save_path)
     print("Downloaded pretrained.")
 
-def load_pretrained(model: MambaIRv2, checkpoint_path, device):
+def load_pretrained(model: MambaIRv2Light, checkpoint_path, device):
     ckpt = torch.load(checkpoint_path, map_location=device)
-    state = ckpt.get('params_ema', ckpt.get('params', strict=False))
-    missing, unexpected = model.load_state_dict(state, strict=False)
-
-    if missing:
-        print(f"Missing!!! ({len(missing)}): {missing[:5]} ...")
-    if unexpected:
-        print(f"Unexpected!!! ({len(unexpected)}): {unexpected[:5]} ...")
+    state = ckpt.get('params_ema', ckpt.get('params', ckpt))
+    model_state = model.state_dict()
+    filtered = {
+        k: v for k, v in state.items()
+        if k in model_state and v.shape == model_state[k].shape
+    }
+    print(f"  Loaded {len(filtered)}/{len(model_state)} layers from checkpoint (shape-matched).")
+    if len(filtered) == 0:
+        print("  WARNING: No weights matched — training from scratch.")
+    model.load_state_dict(filtered, strict=False)
 
 
 
@@ -203,7 +206,6 @@ class MambaIRv2FineTuned(nn.Module):
             'attn_mask': attn_mask,
             'rpi_sa': self.backbone.relative_position_index_SA,
         }
-        
         x_first = self.backbone.conv_first(x)
         res = self.backbone.conv_after_body(
             self.backbone.forward_features(x_first, params)
@@ -236,8 +238,8 @@ class L1_Saturation_Loss(nn.Module):
         l1_loss = self.l1(pred_ab, target_ab)
 
         # saturation 
-        pred_chroma = pred_ab.norm(dim=1, keepDim=True)
-        true_chroma = target_ab.norm(dim=1, keepDim=True)
+        pred_chroma = pred_ab.norm(dim=1, keepdim=True)
+        true_chroma = target_ab.norm(dim=1, keepdim=True)
 
         sat_loss = torch.clamp(true_chroma - pred_chroma, min=0).mean()
 
