@@ -15,15 +15,18 @@ Days 1–2 — Setup & Data
 
 Days 3–4 wed-thur — Baseline
 
-[] Get the pretrained MambaIRv2 weights running (frozen, no fine-tuning)
-[] Run inference on the test set — this becomes your baseline
-[] Record PSNR, SSIM, LPIPS, Colorfulness scores on the baseline
-[] Commit this working baseline
+[x] Get a CNN baseline working
+
+
+[X] Get the pretrained MambaIRv2 weights running (frozen, no fine-tuning)
+[X] Run inference on the test set — this becomes your baseline
+[X] Record PSNR, SSIM, LPIPS, Colorfulness scores on the baseline
+[X] Commit this working baseline
 
 Days 5–7 fri-sun— Fine-tuning
 
-[] Implement fine-tuning in train.py
-[] Train locally on your RTX 5060
+[X] Implement fine-tuning in train.py
+[X] Train locally on your RTX 5060
 [] Compare metrics before/after fine-tuning
 [] If you need more compute, push to Rangpur via sbatch
 
