@@ -8,6 +8,7 @@ import sys
 import os
 import torch
 import torch.nn as nn
+from torch.utils.checkpoint import checkpoint
 
 MAMBAIR_BASE_CFG = dict(
     img_size=64,
@@ -42,7 +43,7 @@ def clone():
         os.path.join(os.getcwd(), 'MambaIR'),          # current working dir
     ]
     for _p in _candidates:
-        if os.path.isdir(_p) and os.path.isfile(os.path.join(_p, 'basicsr', 'archs', 'mambairv2_arch.py')):
+        if os.path.isdir(_p) and os.path.isfile(os.path.join(_p, 'basicsr', 'archs', 'mambairv2light_arch.py')):
             MAMBAIR_PATH = os.path.abspath(_p)
             break
 
@@ -105,7 +106,7 @@ class MambaIRv2Frozen(nn.Module):
         if device is None:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        self.backbone = MambaIRv2(**MAMBAIR_BASE_CFG)
+        self.backbone = MambaIRv2Light(**MAMBAIR_BASE_CFG)
 
         if checkpoint_path is not None:
             if not os.path.isfile(checkpoint_path):
@@ -145,7 +146,12 @@ class MambaIRv2Frozen(nn.Module):
         params = {'attn_mask': attn_mask, 'rpi_sa': self.backbone.relative_position_index_SA}
 
         x_first = self.backbone.conv_first(x)
-        res = self.backbone.conv_after_body(self.backbone.forward_features(x_first, params)) + x_first
+
+        with torch.no_grad():
+            features = self.backbone.forward_features(x_first, params)
+
+        res = self.backbone.conv_after_body(features) + x_first
+        
         out = self.backbone.conv_last(res)
 
         out = out[..., :h_ori, :w_ori]
@@ -170,7 +176,7 @@ class MambaIRv2FineTuned(nn.Module):
         if device is None:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        self.backbone = MambaIRv2(**MAMBAIR_BASE_CFG)
+        self.backbone = MambaIRv2Light(**MAMBAIR_BASE_CFG)
 
         #load pretrained if provided
         if checkpoint_path is not None:
@@ -206,10 +212,21 @@ class MambaIRv2FineTuned(nn.Module):
             'attn_mask': attn_mask,
             'rpi_sa': self.backbone.relative_position_index_SA,
         }
+
         x_first = self.backbone.conv_first(x)
-        res = self.backbone.conv_after_body(
-            self.backbone.forward_features(x_first, params)
-        ) + x_first
+        # checkpoint is slower but wont OOM ;)
+        x_size = (h, w)
+        feat = self.backbone.patch_embed(x_first)
+        if self.backbone.ape:
+            feat = feat + self.backbone.absolute_pos_embed
+        
+        for layer in self.backbone.layers:
+            feat = checkpoint(layer, feat, x_size, params, use_reentrant=False)
+        
+        feat = self.backbone.norm(feat)
+        feat = self.backbone.patch_unembed(feat, x_size)
+        
+        res = self.backbone.conv_after_body(feat) + x_first
         out = self.backbone.conv_last(res)
         out = out[..., :h_ori, :w_ori]
         return out
