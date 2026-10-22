@@ -56,7 +56,7 @@ class ColouriseCNN(nn.Module):
 
 
 
-def train_model(model, train_loader, val_loader, num_epochs=100, lr = 1e-4, device='cuda'):
+def train_model(model, train_loader, val_loader, loss_function = nn.L1Loss(), num_epochs=100, lr = 1e-4, device='cuda'):
     model = model.to(device)
     criterion = nn.L1Loss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -116,7 +116,7 @@ def train_model(model, train_loader, val_loader, num_epochs=100, lr = 1e-4, devi
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            torch.save(model.state_dict(), 'recognition/MambaIRv2_s48448284/models/best_baseline_model.pth')
+            torch.save(model.state_dict(), 'recognition/MambaIRv2_s48448284/models/best_baseline_lpips_model.pth')
         
         if (epoch + 1) % 10 == 0 or epoch == 0:
             print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Val PSNR: {val_psnr:.4f}, Val SSIM: {val_ssim:.4f}')
@@ -256,8 +256,9 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = get_dataloaders(batch_size=16, num_workers=4)
 
     # Initialize model
+    from modules import L1_Saturation_Loss, LPIPS_Loss
     model = ColouriseCNN()
-    model, history = train_model(model, train_loader, val_loader, num_epochs=100, lr=1e-4)
-    metrics = test_model(model, test_loader, checkpoint_path='recognition/MambaIRv2_s48448284/models/best_baseline_model.pth')
-    visualise_results(model, test_loader, checkpoint_path='recognition/MambaIRv2_s48448284/models/best_baseline_model.pth', num_images=5)
+    model, history = train_model(model, train_loader, val_loader, loss_function=LPIPS_Loss(), num_epochs=100, lr=1e-4)
+    metrics = test_model(model, test_loader, checkpoint_path='recognition/MambaIRv2_s48448284/models/best_baseline_lpips_model.pth')
+    visualise_results(model, test_loader, checkpoint_path='recognition/MambaIRv2_s48448284/models/best_baseline_lpips_model.pth', num_images=5)
 
