@@ -4,14 +4,25 @@
 ### 1. User Need, Scope & Acceptance Criteria
 The intended user, prototype purpose, and 3–5 testable acceptance criteria addressing the domain’s open dilemma, including an operational/resource constraint (e.g., peak VRAM, runtime).
 
-**Intended User**
+**Intended User:** 
 
-**Prototype purpose**
+**Prototype Purpose:**
 
-**Acceptance criteria**
+**Acceptance Criteria:**
     - A
     - B
     - C
+
+Image colourisation has applications in [restoration, historical photos, .....]. The intended user of such tools is [someone who wants to convert grayscale to colour easily]. This prototype would demonstrate that a state-space model, such as MambaIRv2, can be adapted for colourisation.
+
+**Acceptance criteria**
+| # | Criteria                 | Target |
+|---|--------------------------|--------|
+| A | Quantitative Metrics     | PSNR > ; SSIM ; LPIPS  ; Colorfulness > 20 (better than CNN baseline) |
+| B | Qualitative              | minimal failure cases "5 representative failure cases (color bleeding across high-contrast edges, desaturation collapses, chromatic hallucinations)."        
+| C | Performance Restrictions | 8 GB VRAM budget; runtime < |
+
+
 
 ### 2. Model Choice & Course Concepts
 The proposed dataset configuration, model architecture, chosen difficulty band, and how course concepts and literature support the choices.
@@ -27,26 +38,39 @@ https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_rgb_to_gr
 
 For our first model we will use CNN "pixel-wise regression losses (MSE/L1) produce drab results"
 
+**Dataset**
+- What dataset?
+- how big is it? whats the split? whats the image sizes?
+- CIE LAB colour space 
+
+**Model Architecture**
+- CNN 
+- MambaIRv2
+- Alterations to MambaIRv2
+
+
 ### 3. Preliminary Feasability Evidence
 An initial data audit, baseline smoke-test experiment, or
 measured resource estimate. A fully trained final model is not required.
+
+- results from CNN work
+
 
 ### 4. Risks, Budget & Fallback
 Key technical risks, computing budget, the next planned experiment,
 and a workable fallback
 
-## Dataset
-- for training we use BSD500
+
 
 ## Metrics
 - Metrics are 
 
-| Metric | Ideal Value | Meaning | Formula |
-|--------|-------------|---------|---------|
-| PSNR
-| SSIM
-| LPIPS
-| Colorfulness
+| Metric       | Ideal Value | Meaning | Formula |
+|--------------|-------------|---------|---------|
+| PSNR         |
+| SSIM         |
+| LPIPS        |
+| Colorfulness |
 
 ## Loss Function
 
@@ -90,6 +114,7 @@ https://arxiv.org/pdf/2204.02980
 | channel sizes   |       |   |
 
 - discuss hyperparameter choices
+- comparisons of L1, L1_sat and LPIPS
 
 - results
 
@@ -113,7 +138,11 @@ https://arxiv.org/pdf/2204.02980
 https://www.youtube.com/watch?v=N6Piou4oYx8
 https://www.youtube.com/watch?v=BDTVVlUU1Ck
 
+pretrained models from:
+https://github.com/csguoh/MambaIR/releases/tag/v1.0 
+
 
 ## AI Usage
 - Claude generated my checklist to provide step by step plan
 - GPT Luna helped with getting the project working with correct versions, using WSL for Ubuntu and other initial environment set up (the mamba install kept failing)
+- Claude assisted with writing code where needed, and ensuring code is up to readability standards
