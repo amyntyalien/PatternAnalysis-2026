@@ -4,23 +4,17 @@
 ### 1. User Need, Scope & Acceptance Criteria
 The intended user, prototype purpose, and 3–5 testable acceptance criteria addressing the domain’s open dilemma, including an operational/resource constraint (e.g., peak VRAM, runtime).
 
-**Intended User:** 
 
-**Prototype Purpose:**
-
-**Acceptance Criteria:**
-    - A
-    - B
-    - C
 
 Image colourisation has applications in [restoration, historical photos, .....]. The intended user of such tools is [someone who wants to convert grayscale to colour easily]. This prototype would demonstrate that a state-space model, such as MambaIRv2, can be adapted for colourisation.
 
 **Acceptance criteria**
+Be better than CNN model was
 | # | Criteria                 | Target |
 |---|--------------------------|--------|
-| A | Quantitative Metrics     | PSNR > ; SSIM ; LPIPS  ; Colorfulness > 20 (better than CNN baseline) |
+| A | Quantitative Metrics     | PSNR > 22; SSIM > 0.91; LPIPS < 0.20; Colorfulness > 20.5 |
 | B | Qualitative              | minimal failure cases "5 representative failure cases (color bleeding across high-contrast edges, desaturation collapses, chromatic hallucinations)."        
-| C | Performance Restrictions | 8 GB VRAM budget; runtime < |
+| C | Performance Restrictions | 8 GB VRAM budget; runtime < 7hr  for fine tune, < 3 hr for frozen on local machine|
 
 
 
@@ -36,17 +30,30 @@ https://en.wikipedia.org/wiki/CIELAB_color_space
 https://programmingdesignsystems.com/color/perceptually-uniform-color-spaces/
 https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_rgb_to_gray.html
 
-For our first model we will use CNN "pixel-wise regression losses (MSE/L1) produce drab results"
-
 **Dataset**
+
 - What dataset?
 - how big is it? whats the split? whats the image sizes?
 - CIE LAB colour space 
 
+I decided to use BSD500 as my dataset for training and testing. 
+
 **Model Architecture**
+
 - CNN 
+- 1 -> 64 -> 128 -> 256 -> 128 -> 64 -> 2
+- Trained with MSE, L1, L1_Sat, and LPIPS
+
 - MambaIRv2
+- original mamba architecture
+- ASSB blocks
+    - Window-MHSA
+    - ASSM
+    - ConvFFN
+- obviously these dimensions are not suitable for our purpose (L in, ab out)
+
 - Alterations to MambaIRv2
+
 
 
 ### 3. Preliminary Feasability Evidence
@@ -54,11 +61,23 @@ An initial data audit, baseline smoke-test experiment, or
 measured resource estimate. A fully trained final model is not required.
 
 - results from CNN work
+    - Not great which is why we need our other models
+
+- Frozen performance first 10 epochs
+
+The VRAM budget
 
 
 ### 4. Risks, Budget & Fallback
 Key technical risks, computing budget, the next planned experiment,
 and a workable fallback
+
+| Risk                              | Mitigation / Fallback             |
+|-----------------------------------|-----------------------------------|
+| Finetune model runs out of memory | Per-layer gradient checkpointing  |
+| Pretrained weights incompatible   | Shape-filtered loading            |
+| Training time exceeds expectation | 50 epochs                         |
+| MambaIRv2 underperforms           | Add more epochs, run on Virtual GPU Lab |
 
 
 
@@ -118,7 +137,7 @@ https://arxiv.org/pdf/2204.02980
 
 - results
 
-| Metric | Result |
+| Metric | MSE | L1 | L1+sat | LPIPS
 |--------|--------|
 |PSNR    | 22.6826|
 |SSIM    | 0.9131 |
