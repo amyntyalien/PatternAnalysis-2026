@@ -67,6 +67,42 @@ def collect_image_paths(images_dir: Path) -> list[Path]:
     print(f"Found {len(all_paths)} images total")
     return all_paths
 
+def download_coco_subset(dest_dir, num_images=2000, seed=42):
+    import urllib.request
+    import json
+    import random
+
+    dest = Path(dest_dir)
+    dest.mkdir(parents=True, exist_ok=True)
+
+    # Download the annotations file to get image URLs
+    ann_url = "http://images.cocodataset.org/annotations/annotations_trainval2017.zip"
+    ann_path = dest / "annotations.zip"
+
+    if not (dest / "instances_val2017.json").exists():
+        print("Downloading COCO annotations...")
+        urllib.request.urlretrieve(ann_url, ann_path)
+        import zipfile
+        with zipfile.ZipFile(ann_path) as z:
+            z.extract("annotations/instances_val2017.json", dest)
+        ann_path.unlink()  # delete zip
+        (dest / "annotations" / "instances_val2017.json").rename(dest / "instances_val2017.json")
+
+    with open(dest / "instances_val2017.json") as f:
+        coco = json.load(f)
+
+    random.seed(seed)
+    images = random.sample(coco["images"], num_images)
+
+    print(f"Downloading {num_images} COCO images to {dest}...")
+    for i, img in enumerate(images):
+        url = f"http://images.cocodataset.org/val2017/{img['file_name']}"
+        urllib.request.urlretrieve(url, dest / img["file_name"])
+        if (i + 1) % 100 == 0:
+            print(f"  {i+1}/{num_images}")
+
+    print(f"Done. {num_images} images saved to {dest}")
+
 # 2. Split into training / validation / testing
 def split(paths: list[Path], train_ratio: float = 0.7, val_ratio: float = 0.15, seed: int = 42) -> tuple[list[Path], list[Path, list[Path]]]:
     train_val, test = train_test_split(paths, test_size = 1 - train_ratio - val_ratio, random_state=seed)
@@ -186,8 +222,15 @@ def get_dataloaders(
     Downloads BSD500 (if needed), splits it, and returns
     (train_loader, val_loader, test_loader).
     """
-    images_dir = download_bsd500(dataset_dir)
-    all_paths = collect_image_paths(images_dir)
+    # images_dir = download_bsd500(dataset_dir)
+    # all_paths = collect_image_paths(images_dir)
+    IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
+    
+    all_paths = sorted(
+        str(p) for p in Path(dataset_dir).rglob("*")
+        if p.suffix.lower() in IMAGE_SUFFIXES
+    )
+    
     train_paths, val_paths, test_paths = split(all_paths, seed=seed)
 
     train_ds = ColouriseDataset(train_paths, augment=True)
@@ -212,6 +255,7 @@ def get_dataloaders(
 
 if __name__ == "__main__":
     # check if it works
+    download_coco_subset(dest_dir="recognition/MambaIRv2_s48448284/dataset/coco")
     train_loader, val_loader, test_loader = get_dataloaders(batch_size=4, num_workers=0)
 
     L_batch, ab_batch = next(iter(train_loader))
