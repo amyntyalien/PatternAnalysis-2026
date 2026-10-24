@@ -58,7 +58,7 @@ class ColouriseCNN(nn.Module):
 
 def train_model(model, train_loader, val_loader, loss_function = nn.L1Loss(), num_epochs=100, lr = 1e-4, device='cuda'):
     model = model.to(device)
-    criterion = nn.L1Loss()
+    criterion = loss_function
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     history = {'train_loss': [], 'val_loss': [], 'val_psnr': [], 'val_ssim': []}
