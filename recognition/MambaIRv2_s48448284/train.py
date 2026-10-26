@@ -176,7 +176,7 @@ def train(
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     CKPT_DIR.mkdir(parents=True, exist_ok=True)
  
-    run_name  = f"{'frozen' if frozen else 'finetuned'}_{loss}"
+    run_name  = f"{'frozen' if frozen else 'more_finetuned'}_{loss}"
     best_path = MODELS_DIR / f"{run_name}_best.pth"
     last_path = MODELS_DIR / f"{run_name}_last.pth"
 
@@ -362,31 +362,24 @@ def train(
 
 if __name__ == "__main__":
     loss_name = "l1_sat"
-    frozen = True
-    resume = None
-    for i in range(4):
+    frozen = False
+    resume = "recognition/MambaIRv2_s48448284/models/more_finetuned_l1_sat_best.pth"
+    for i in range(1):
         if i%2==0:
             loss_name = "l1_sat"
         else:
             loss_name = "lpips"
-
-        if i < 2:
-            frozen = False
-        else:
-            frozen = True
-
-        if (not frozen and loss_name == "l1_sat"):
-            resume = "recognition/MambaIRv2_s48448284/models/finetuned_l1_sat_best.pth"
-        else:
             resume = None
+
+
         
-        model, history = train(frozen, loss_name, batch_size=1, num_workers=0,resume=resume)
+        model, history = train(frozen, loss_name, batch_size=1, num_workers=0, resume= resume)
 
         final_psnr = history['val_psnr'][-1]
         final_ssim = history['val_ssim'][-1]
         best_psnr  = max(history['val_psnr'])
         print(f"\n{'='*55}")
-        model_str = 'frozen' if frozen else 'finetuned'
+        model_str = 'frozen' if frozen else 'more_finetuned'
         print(f"Run: {model_str}_{loss_name}")
         print(f"Final PSNR: {final_psnr:.4f} dB   Best PSNR: {best_psnr:.4f} dB")
         print(f"Final SSIM: {final_ssim:.4f}")
