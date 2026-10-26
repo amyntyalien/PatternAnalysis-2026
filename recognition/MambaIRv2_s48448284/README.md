@@ -4,26 +4,23 @@
 ### 1. User Need, Scope & Acceptance Criteria
 The intended user, prototype purpose, and 3–5 testable acceptance criteria addressing the domain’s open dilemma, including an operational/resource constraint (e.g., peak VRAM, runtime).
 
-
-
-Image colourisation has applications in [restoration, historical photos, .....]. The intended user of such tools is [someone who wants to convert grayscale to colour easily]. This prototype would demonstrate that a state-space model, such as MambaIRv2, can be adapted for colourisation.
+Image colourisation has applications in restoration of historical photos. The intended user of such tools is someone who wants to convert grayscale to colour more easily and quicker than can be done manually by hand. This prototype would demonstrate that a state-space model, such as MambaIRv2, can be adapted for colourisation.
 
 **Acceptance criteria**
-Be better than CNN model was
+Generally, my acceptance criteria is for the MambaIRv2 model to perform better than the basic CNN baseline performed.
+
 | # | Criteria                 | Target |
 |---|--------------------------|--------|
 | A | Quantitative Metrics     | PSNR > 22; SSIM > 0.91; LPIPS < 0.20; Colorfulness > 20.5 |
-| B | Qualitative              | minimal failure cases "5 representative failure cases (color bleeding across high-contrast edges, desaturation collapses, chromatic hallucinations)."        
-| C | Performance Restrictions | 8 GB VRAM budget; runtime < 7hr  for fine tune, < 3 hr for frozen on local machine|
-
+| B | Qualitative              | Minimal failure cases, particularly focussed on desaturation and chromatic hallucinations |        
+| C | Performance Restrictions | 8 GB VRAM budget; runtime < 5 hr  for fine tune, < 3 hr for frozen on local machine |
 
 
 ### 2. Model Choice & Course Concepts
 The proposed dataset configuration, model architecture, chosen difficulty band, and how course concepts and literature support the choices.
-- **Proposed Dataset Configuration**: use LAB colour space representation
-- **Model Architecture**
-- **Chosen Difficulty**: Hard
-- **How course concepts and literature support these choices**
+
+**Chosen Difficulty**: Hard
+I chose this project despite it being hard because image colourisation seems interesting, and the results seem a lot more engaging for me to interact with.
 
 Lab colourspace? what is that?
 https://en.wikipedia.org/wiki/CIELAB_color_space
@@ -32,53 +29,76 @@ https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_rgb_to_gr
 
 **Dataset**
 
-- What dataset?
-- how big is it? whats the split? whats the image sizes?
-- CIE LAB colour space 
-
-I decided to use BSD500 as my dataset for training and testing. 
+I decided to use BSD500 (link ref dataset) as my dataset for training and testing. I chose this dataset as it has a wide variety of images, and because it was relatively small but larger than BSD50. This would make it so that runtime should not be too slow, while results are still good. 
+This dataset has 500 images in total, with a split of 70% (350) training data, 15% (75) validation data and 15% (75) testing data.
+All images in the dataset are resized to 256 x 256 pixels, and transformed into CIE LAB colour space for use with training and testing models.
+LAB colour space consists of L (lightness), which serves as grayscale input, a (green-red) and b (blue-yellow) which serve as the predicted output.
+CIE LAB colour space is standard for colourisation tasks because LAB is useful for detecting differences in colour seperately from how bright/dark the colour may be. 
 
 **Model Architecture**
-
+For the *baseline CNN* model, a basic autoencoder structure was used, [as illustrated bellow]. This simple model can serve as a baseline of minimum competence.
 - CNN 
 - 1 -> 64 -> 128 -> 256 -> 128 -> 64 -> 2
 - Trained with MSE, L1, L1_Sat, and LPIPS
 
-- MambaIRv2
-- original mamba architecture
-- ASSB blocks
-    - Window-MHSA
-    - ASSM
-    - ConvFFN
-- obviously these dimensions are not suitable for our purpose (L in, ab out)
+*MambaIRv2 (Light)*: MambaIRv2 is a state-space model for image restoration, particularly for denoising and resizing purposes. The 'light' version is smaller than the base model with less embeded dimensions. The core building block of MambaIRv2 models is the Aggregated Selective State-space Block (ASSB).
 
-- Alterations to MambaIRv2
+ASSB blocks contain:
+- Window Multi-Head Self-Attention (Window-MHSA): uses non-overlapping windows to capture local spatial context
+- Attentive State Space Module (ASSM): 
+    - SGN-unfold: scores tokens by semantic similarity and reorders token sequence so related tokens are adjacent
+    - Selective scan: selectively lets the model decide what to remember and what to forget
+    - Addaptive State Expansion (ASE) : dynamically expands the state dimensions for tokens that need richer context, and shrink for simpler regions
+    - SGN-fold: restore original spatial layout 
+reference: mambaIRv2 paper
+[add in the flowchart]
 
+Instead of low quality image input and high quality image output, we want to have 1-channel L input and 2-channel ab output. So, we can addapt the model and keep the structure all the same, however change the input and output layer, as well  as upsampling disabled. Pretrained weights from MambaIRv2 Light SR x2 (ref) are loaded with shape-filtered transfer, layeres whose shapes match are loaded, and mismatched layers are reinitialised.
 
+There are two training strategies that we can use on this altered model. We can freeze the pretrained weights, and only train the conv_first and conv_last, or we can train through every layer. These strategies are refered to as "Frozen" and "Finetuned". 
+I also seek to compare two loss functions, being L1 + desaturation penalty, and LPIPS (AlexNet) + L1. These are referred to as "l1_sat" and "lpips" respectively. 
 
 ### 3. Preliminary Feasability Evidence
 An initial data audit, baseline smoke-test experiment, or
 measured resource estimate. A fully trained final model is not required.
 
-- results from CNN work
-    - Not great which is why we need our other models
+**CNN Baseline (100 epochs, L1 loss)**
+| Metric | Value |
+| PSNR | 22.66 |
+| SSIM | 0.9112 |
+| LPIPS | 0.2086 |
+| Colorfulness | 20.58 / 40.58 |
+This CNN produced structurally correct but desaturated output, confirming the need for a saturation-aware loss ans more powerful feature extractors.
 
-- Frozen performance first 10 epochs
+**Frozen l1_sat (as of epoch 5)**
+| Metric | Value |
+|--------|-------|
+| PSNR | 22.14 |
+| SSIM | 0.9001|
+| Epoch time | 186 s |
+Expected run time = 2.6 hrs
 
-The VRAM budget
+**Finetuned l1_sat (as of epoch 5)**
+| Metric | Value |
+|--------|-------|
+| PSNR | 23.27 |
+| SSIM | 0.9312|
+| Epoch time | 551 s |
+Expected run time = 7.7 hrs
+Wonderfully, the PSNR and SSIM of this model is already better than the CNN!
 
+**Feasibility**:
+The expected run time of the finetune model seems to exceed the acceptance criteria, and running these models is estimated to take 20 hours in total on my local machine. This can be easily done over the course of two overnight training runs that can occur while my computer is not in use. 
 
 ### 4. Risks, Budget & Fallback
-Key technical risks, computing budget, the next planned experiment,
-and a workable fallback
+
 
 | Risk                              | Mitigation / Fallback             |
 |-----------------------------------|-----------------------------------|
 | Finetune model runs out of memory | Per-layer gradient checkpointing  |
 | Pretrained weights incompatible   | Shape-filtered loading            |
 | Training time exceeds expectation | 50 epochs                         |
-| MambaIRv2 underperforms           | Add more epochs, run on Virtual GPU Lab |
-
+| MambaIRv2 underperforms           | Use larger dataset, add more epochs, run on Virtual GPU Lab |
 
 
 ## Metrics
@@ -160,6 +180,11 @@ https://www.youtube.com/watch?v=BDTVVlUU1Ck
 pretrained models from:
 https://github.com/csguoh/MambaIR/releases/tag/v1.0 
 
+
+
+
+
+Failure cases  = (color bleeding across high-contrast edges, desaturation collapses, chromatic hallucinations)."
 
 ## AI Usage
 - Claude generated my checklist to provide step by step plan
