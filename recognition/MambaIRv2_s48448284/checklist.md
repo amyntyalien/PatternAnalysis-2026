@@ -9,7 +9,7 @@ Days 1–2 — Setup & Data
 
 [x] Understand the dataset — the spec says “supplied test images” so check what’s actually provided
 
-[] Write your feasibility review (needed for tutor check-off AND README)
+[X] Write your feasibility review (needed for tutor check-off AND README)
 
 [X] Start dataset.py
 
@@ -32,7 +32,7 @@ Days 5–7 fri-sun— Fine-tuning
 
 Days 8–9 — Analysis & Predict
 
-[] Write predict.py with side-by-side visualisations (greyscale input / baseline / fine-tuned / ground truth)
+[X] Write predict.py with side-by-side visualisations (greyscale input / baseline / fine-tuned / ground truth)
 [] Pick 3–5 failure cases and write the autopsy (color bleeding, desaturation, chromatic hallucinations)
 [] Draft your engineering recommendation
 
