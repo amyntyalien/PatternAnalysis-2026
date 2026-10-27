@@ -2,7 +2,6 @@
 
 ## Feasability Check-Off
 ### 1. User Need, Scope & Acceptance Criteria
-The intended user, prototype purpose, and 3–5 testable acceptance criteria addressing the domain’s open dilemma, including an operational/resource constraint (e.g., peak VRAM, runtime).
 
 Image colourisation has applications in restoration of historical photos. The intended user of such tools is someone who wants to convert grayscale to colour more easily and quicker than can be done manually by hand. This prototype would demonstrate that a state-space model, such as MambaIRv2, can be adapted for colourisation.
 
@@ -17,15 +16,9 @@ Generally, my acceptance criteria is for the MambaIRv2 model to perform better t
 
 
 ### 2. Model Choice & Course Concepts
-The proposed dataset configuration, model architecture, chosen difficulty band, and how course concepts and literature support the choices.
 
 **Chosen Difficulty**: Hard
 I chose this project despite it being hard because image colourisation seems interesting, and the results seem a lot more engaging for me to interact with.
-
-Lab colourspace? what is that?
-https://en.wikipedia.org/wiki/CIELAB_color_space
-https://programmingdesignsystems.com/color/perceptually-uniform-color-spaces/
-https://scikit-image.org/docs/stable/auto_examples/color_exposure/plot_rgb_to_gray.html
 
 **Dataset**
 
@@ -34,6 +27,8 @@ This dataset has 500 images in total, with a split of 70% (350) training data, 1
 All images in the dataset are resized to 256 x 256 pixels, and transformed into CIE LAB colour space for use with training and testing models.
 LAB colour space consists of L (lightness), which serves as grayscale input, a (green-red) and b (blue-yellow) which serve as the predicted output.
 CIE LAB colour space is standard for colourisation tasks because LAB is useful for detecting differences in colour seperately from how bright/dark the colour may be. 
+
+ref: https://programmingdesignsystems.com/color/perceptually-uniform-color-spaces/
 
 **Model Architecture**
 For the *baseline CNN* model, a basic autoencoder structure was used, [as illustrated bellow]. This simple model can serve as a baseline of minimum competence.
@@ -53,21 +48,23 @@ ASSB blocks contain:
 reference: mambaIRv2 paper
 [add in the flowchart]
 
-Instead of low quality image input and high quality image output, we want to have 1-channel L input and 2-channel ab output. So, we can addapt the model and keep the structure all the same, however change the input and output layer, as well  as upsampling disabled. Pretrained weights from MambaIRv2 Light SR x2 (ref) are loaded with shape-filtered transfer, layeres whose shapes match are loaded, and mismatched layers are reinitialised.
+Instead of low quality image input and high quality image output, we want to have 1-channel L input and 2-channel ab output. So, we can addapt the model and keep the structure all the same, however change the input and output layer, as well  as upsampling disabled. Pretrained weights from MambaIRv2 Light SR x2 (https://github.com/csguoh/MambaIR/releases/tag/v1.0 
+) are loaded with shape-filtered transfer, layeres whose shapes match are loaded, and mismatched layers are reinitialised.
 
 There are two training strategies that we can use on this altered model. We can freeze the pretrained weights, and only train the conv_first and conv_last, or we can train through every layer. These strategies are refered to as "Frozen" and "Finetuned". 
 I also seek to compare two loss functions, being L1 + desaturation penalty, and LPIPS (AlexNet) + L1. These are referred to as "l1_sat" and "lpips" respectively. 
 
 ### 3. Preliminary Feasability Evidence
-An initial data audit, baseline smoke-test experiment, or
-measured resource estimate. A fully trained final model is not required.
 
 **CNN Baseline (100 epochs, L1 loss)**
+
 | Metric | Value |
+|--------|------|
 | PSNR | 22.66 |
 | SSIM | 0.9112 |
 | LPIPS | 0.2086 |
 | Colorfulness | 20.58 / 40.58 |
+
 This CNN produced structurally correct but desaturated output, confirming the need for a saturation-aware loss ans more powerful feature extractors.
 
 **Frozen l1_sat (as of epoch 5)**
@@ -76,6 +73,7 @@ This CNN produced structurally correct but desaturated output, confirming the ne
 | PSNR | 22.14 |
 | SSIM | 0.9001|
 | Epoch time | 186 s |
+
 Expected run time = 2.6 hrs
 
 **Finetuned l1_sat (as of epoch 5)**
@@ -84,10 +82,13 @@ Expected run time = 2.6 hrs
 | PSNR | 23.27 |
 | SSIM | 0.9312|
 | Epoch time | 551 s |
+
 Expected run time = 7.7 hrs
+
 Wonderfully, the PSNR and SSIM of this model is already better than the CNN!
 
-**Feasibility**:
+**Feasibility**
+
 The expected run time of the finetune model seems to exceed the acceptance criteria, and running these models is estimated to take 20 hours in total on my local machine. This can be easily done over the course of two overnight training runs that can occur while my computer is not in use. 
 
 ### 4. Risks, Budget & Fallback
@@ -99,6 +100,14 @@ The expected run time of the finetune model seems to exceed the acceptance crite
 | Pretrained weights incompatible   | Shape-filtered loading            |
 | Training time exceeds expectation | 50 epochs                         |
 | MambaIRv2 underperforms           | Use larger dataset, add more epochs, run on Virtual GPU Lab |
+
+
+
+### Checked Off?
+Suggestions:
+- way more vram
+- larger dataset
+
 
 
 ## Metrics
@@ -137,8 +146,7 @@ https://arxiv.org/pdf/2204.02980
 
 ## Baseline Model
 - A basic CNN
-- Model architecture: 
-``` TODO ```
+
 
 | Hyperparameter  | Value | Meaning/Reasoning |
 |-----------------|------:|-------------------|
@@ -157,34 +165,63 @@ https://arxiv.org/pdf/2204.02980
 
 - results
 
-| Metric | MSE | L1 | L1+sat | LPIPS
-|--------|--------|
-|PSNR    | 22.6826|
-|SSIM    | 0.9131 |
-|LPIPS   | 0.2035 |
-|Colourfulness | 20.46 |
+| Metric       | MSE    | L1     | L1+sat | LPIPS   |
+|--------------|--------|--------|--------|---------|
+|PSNR          | 22.6826| 22.6877| 22.6210| 21.8546 |
+|SSIM          | 0.9131 | 0.9112 | 0.9096 | 0.8065  |
+|LPIPS         | 0.2035 | 0.2086 | 0.2065 | 0.2113  |
+|Colourfulness | 20.46  | 20.58  | 22.25  | 22.42   |
 
 - discuss results
 
 ## MambaIRv2
-- There is no colourisation model
-- it also works with rgb not lab
-- and expects 3 channel in &  3 channel out. We want 1 in (L) and 2 out (ab)
-- So we need to alter the mamba ir model
-- We could: modify the input / output layers only and keep the rest of the model pretrained
-- We also could go through all the layers trained.
-
-https://www.youtube.com/watch?v=N6Piou4oYx8
-https://www.youtube.com/watch?v=BDTVVlUU1Ck
-
 pretrained models from:
 https://github.com/csguoh/MambaIR/releases/tag/v1.0 
 
 
+- hyperparameters
+- choices
 
 
+- results
+Frozen
+| Metric       | L1+sat | LPIPS   |
+|--------------|--------|---------|
+|PSNR          | 22.5548| 21.9421 |
+|SSIM          | 0.9147 | 0.8992  |
+|LPIPS         | 0.1952 | 0.1971  |
+|Colourfulness | 17.21  | 23.20   |
+
+Finetuned
+| Metric       | L1+sat | LPIPS   |
+|--------------|--------|---------|
+|PSNR          | 22.9920| 22.9800 |
+|SSIM          | 0.9275 | 0.9178  |
+|LPIPS         | 0.1874 | 0.1787  |
+|Colourfulness | 22.56  | 24.27   |
 
 Failure cases  = (color bleeding across high-contrast edges, desaturation collapses, chromatic hallucinations)."
+
+
+- these were dissapointing
+- so first i decided to give it more data
+- fall back plan:
+    - Use larger dataset, add more epochs, run on Virtual GPU Lab
+- due to run time, i dont think i can add more epochs and run on virtual gpu lab without running out of quota.
+
+
+fine tuned more
+
+| Metric       | L1+sat | LPIPS   |
+|--------------|--------|---------|
+|PSNR          | 23.5957| |
+|SSIM          | 0.9202 | |
+|LPIPS         | 0.1783 | |
+|Colourfulness | 20.45  | |
+
+its better?
+
+
 
 ## AI Usage
 - Claude generated my checklist to provide step by step plan
