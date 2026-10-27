@@ -180,22 +180,22 @@ def run_colourise(model, checkpoint_path, image_folder, results_folder, device='
         L_norm = normalise_L(L)              
         ab_norm = normalise_ab(ab)           
         
-        # Convert to tensors: (C, H, W)
-        L_tensor = torch.from_numpy(L_norm).unsqueeze(0)  
-        ab_tensor = torch.from_numpy(ab_norm).permute(2, 0, 1)
-
-        # predict AB
+        L_tensor = torch.from_numpy(L_norm).unsqueeze(0).unsqueeze(0).float().to(device)
         with torch.no_grad():
-            ab_pred = model(L_tensor)
+            ab_pred = model(L_tensor)  # (1, 2, H, W)
 
-        L_denorm = denormalise_L(L.cpu().numpy())
-        ab_denorm = denormalise_ab(ab.cpu().numpy())
-                    
-        lab_pred = np.concatenate([L_denorm[0], ab_denorm[0]], axis=0).transpose(1, 2, 0)
-        rgb_pred = lab_to_rgb(lab_pred[..., 0], lab_pred[..., 1:])
+        ab_pred_np = ab_pred.squeeze(0).cpu().numpy().transpose(1, 2, 0)  # (H, W, 2)
 
-        # save image
-        out_img = Image.fromarray((rgb_pred * 255).astype(np.uint8))
+        # Denormalise back to LAB ranges
+        L_denorm = denormalise_L(L_norm)          # -> (H, W), range 0-100
+        ab_denorm = denormalise_ab(ab_pred_np)    # -> (H, W, 2), range -128 to 127
+
+        # Reconstruct LAB and convert to RGB
+        lab_pred = np.concatenate([L_denorm[..., np.newaxis], ab_denorm], axis=-1)  # (H, W, 3)
+        rgb_pred = lab_to_rgb(L_denorm, ab_denorm)  # already returns uint8
+
+        # save image — remove the *255 conversion
+        out_img = Image.fromarray(rgb_pred)
         out_path = results_dir / (image_path.stem + "_colourised.png")
         out_img.save(out_path)
         result_paths.append(out_path)
@@ -211,6 +211,7 @@ if __name__ == "__main__":
 
 
     _, _, test_loader = get_dataloaders()
+    run_colourise(model, checkpoint_path, "recognition/MambaIRv2_s48448284/test-data/test-dataset", "recognition/MambaIRv2_s48448284/test-data/results-data-l1_sat")
     visualise_results(model, test_loader, checkpoint_path, save_path="recognition/MambaIRv2_s48448284/figures")
 
         
