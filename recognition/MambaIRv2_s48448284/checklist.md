@@ -62,6 +62,9 @@ pip install --no-cache-dir \
     "https://github.com/state-spaces/mamba/releases/download/v2.2.2/mamba_ssm-2.2.2+cu118torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl" \
     "https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.4.0/causal_conv1d-1.4.0+cu118torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
 
+# 7. Install the pretrained weights into the correct path
+mkdir -p recognition/MambaIRv2_s48448284/checkpoints
+wget https://github.com/csguoh/MambaIR/releases/download/v1.0/mambairv2_lightSR_x2.pth -O recognition/MambaIRv2_s48448284/checkpoints/mambairv2_lightSR_x2.pth
 ```
 
 # Environment Set Up

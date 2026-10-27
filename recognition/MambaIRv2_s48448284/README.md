@@ -178,6 +178,8 @@ https://arxiv.org/pdf/2204.02980
 pretrained models from:
 https://github.com/csguoh/MambaIR/releases/tag/v1.0 
 
+https://arxiv.org/pdf/2411.15269
+
 
 - hyperparameters
 - choices
