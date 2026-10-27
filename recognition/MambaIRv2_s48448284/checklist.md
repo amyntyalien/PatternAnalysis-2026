@@ -43,6 +43,27 @@ Days 10–11 — README & Submit
 [] Open Pull Request, Turnitin PDF submission
 
 
+## Installation
+
+``` 
+git clone https://github.com/amyntyalien/PatternAnalysis-2026.git
+cd PatternAnalysis-2026
+
+conda create -n mamba-colour python=3.10 pip -y
+conda activate mamba-colour
+
+# 5. Install dependencies
+pip install --no-cache-dir torch torchvision transformers==4.44.2 \
+    einops ninja packaging matplotlib opencv numpy \
+    scikit-image lpips timm==0.9.16 basicsr scikit-learn path
+
+# 6. Install mamba_ssm from pre-built wheel (no compilation needed!)
+pip install --no-cache-dir \
+    "https://github.com/state-spaces/mamba/releases/download/v2.2.2/mamba_ssm-2.2.2+cu118torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl" \
+    "https://github.com/Dao-AILab/causal-conv1d/releases/download/v1.4.0/causal_conv1d-1.4.0+cu118torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
+
+```
+
 # Environment Set Up
 **1. Windows prerequisites**
 In an Administrator PowerShell, install Ubuntu if needed:
