@@ -251,7 +251,7 @@ in the background during one training session.
 
 | Finetuned l1_sat | Finetuned lpips | Notes |
 |------------------|-----------------|----|
-| ![Bridge_l1_sat_colourised](test-data/results-short-fine-lsat/G_1_colourised.png)  | ![Bridge_lpips_colourised](test-data/results-short-fine-lpips/G_1_colourised.png)   |Both models i dentify a strong blue sky, and a teal-grey river. These are both strong. |
+| ![Bridge_l1_sat_colourised](test-data/results-short-fine-lsat/G_1_colourised.png)  | ![Bridge_lpips_colourised](test-data/results-short-fine-lpips/G_1_colourised.png)   |Both models identify a strong blue sky, and a teal-grey river. |
 | ![Lighthouse_lsat](test-data/results-short-fine-lsat/G_3_colourised.png)   |![Lighthouse_lpips](test-data/results-short-fine-lpips/G_3_colourised.png) | The sky and water are both redered blue. The l1_sat model seems to be more saturated here. Both models produce a desaturated foreground. |
 | ![Basket_l1_sat](test-data/results-short-fine-lsat/G_10_colourised.png)  | ![Basket_lpips](test-data/results-short-fine-lpips/G_10_colourised.png)   | Both models have failed severly here, with inconsistent colour splotches, chromatic hallucination, and desaturated output. |
 | ![Bird_l1_sat](test-data/results-short-fine-lsat/G_22_colourised.png)  | ![Bird_lpips](test-data/results-short-fine-lpips/G_22_colourised.png)   | Both the flowers and the bird are incorrectly coloured, due to the models not knowing what colour they should be. L1_sat has attempted a blue sky, however does not correctly identify all areas of the sky |
