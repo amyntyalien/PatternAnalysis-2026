@@ -252,6 +252,7 @@ def train(
             torch.cuda.synchronize()
 
             batch_loss = criterion(ab_pred, ab)
+            train_loss += batch_loss.item() * L.size(0)
             batch_loss.backward()
             optimizer.step()
 
