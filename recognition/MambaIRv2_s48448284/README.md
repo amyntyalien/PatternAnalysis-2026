@@ -27,7 +27,7 @@ I chose this project despite it being hard because image colourisation seems int
 
 **Dataset**
 
-I decided to use BSD500 (link ref dataset) as my dataset for training and testing. I chose this dataset as it has a wide variety of images, and because it was relatively small but larger than BSD50. This would make it so that runtime should not be too slow, while results are still good. 
+I decided to use BSD500 as my dataset for training and testing. I chose this dataset as it has a wide variety of images, and because it was relatively small but larger than BSD50. This would make it so that runtime should not be too slow, while results are still good. 
 This dataset has 500 images in total, with a split of 70% (350) training data, 15% (75) validation data and 15% (75) testing data.
 All images in the dataset are resized to 256 x 256 pixels, and transformed into CIE LAB colour space for use with training and testing models.
 LAB colour space consists of L (lightness), which serves as grayscale input, a (green-red) and b (blue-yellow) which serve as the predicted output.
@@ -252,7 +252,7 @@ in the background during one training session.
 | Finetuned l1_sat | Finetuned lpips | Notes |
 |------------------|-----------------|----|
 | ![Bridge_l1_sat_colourised](test-data/results-short-fine-lsat/G_1_colourised.png)  | ![Bridge_lpips_colourised](test-data/results-short-fine-lpips/G_1_colourised.png)   |Both models identify a strong blue sky, and a teal-grey river. |
-| ![Lighthouse_lsat](test-data/results-short-fine-lsat/G_3_colourised.png)   |![Lighthouse_lpips](test-data/results-short-fine-lpips/G_3_colourised.png) | The sky and water are both redered blue. The l1_sat model seems to be more saturated here. Both models produce a desaturated foreground. |
+| ![Lighthouse_lsat](test-data/results-short-fine-lsat/G_3_colourised.png)   |![Lighthouse_lpips](test-data/results-short-fine-lpips/G_3_colourised.png) | The sky and water are both rendered blue. The l1_sat model seems to be more saturated here. Both models produce a desaturated foreground. |
 | ![Basket_l1_sat](test-data/results-short-fine-lsat/G_10_colourised.png)  | ![Basket_lpips](test-data/results-short-fine-lpips/G_10_colourised.png)   | Both models have failed severly here, with inconsistent colour splotches, chromatic hallucination, and desaturated output. |
 | ![Bird_l1_sat](test-data/results-short-fine-lsat/G_22_colourised.png)  | ![Bird_lpips](test-data/results-short-fine-lpips/G_22_colourised.png)   | Both the flowers and the bird are incorrectly coloured, due to the models not knowing what colour they should be. L1_sat has attempted a blue sky, however does not correctly identify all areas of the sky |
 
@@ -297,7 +297,7 @@ Unfortunately, improvements are marginal. While PSNR and LPIPS have improved, SS
 |---|--------------------------|--------| ---------|
 | A | Quantitative Metrics     | PSNR > 22; SSIM > 0.91; LPIPS < 0.20; Colorfulness > 20.5 | For final model (2500 images): PSNR:✅ SSIM:✅ LPIPS:✅ Colorfulness:❔ |
 | B | Qualitative              | Minimal failure cases, particularly focussed on desaturation and chromatic hallucinations |❔ -  Outdoor scenes perform reasonably, however many objects are coloured incorrectly due to ambiguity and lack of training data |
-| C | Performance Restrictions | 8 GB VRAM budget; runtime < 5 hr  for fine tune, < 3 hr for frozen on local machine | 500 image models: ✅ ❌ ✅|
+| C | Performance Restrictions | 8 GB VRAM budget; runtime < 5 hr  for fine tune, < 3 hr for frozen on local machine | First models (500 images): ✅ ❌ ✅|
 
 
 Personally, I wish I completed the check off earlier, as my tutor suggested things that I could've easily known earlier, instead of "finding out the hard way" on my own when there was not as much time left to truly act on those.
@@ -324,6 +324,6 @@ Trade-off recommendation: Finetuned LPIPS (500 images) provides the best percept
 |AI Tool | Usage | How it was verified |
 |--------|--------|--------------------|
 | Claude | Generated checklist to provide step by step plan | I also read the task sheet in full |
-| GPT Luna | helped with getting the project working with correct versions, using WSL for Ubuntu and other environment set up | I read installation errors and verified if AI suggestions were targetting those errors |
-| Claude | assist in writing code and scaffolding functions | Every line of code was handwritten by myself, even when copying from Claude, I asked questions, simplified, or rewrote the code myself. I find that typing it out myself rather than blindly copy pasting forces me to slow down and think about it more |
-| ChatGPT | Generated the equations for loss functions that are present in this markdown | 
+| GPT Luna | Helped with getting the project working with correct versions, using WSL for Ubuntu and other environment set up | I read installation errors and verified if AI suggestions were targetting those errors |
+| Claude | Assist in writing code and scaffolding functions | Every line of code was handwritten by myself, even when copying from Claude, I asked questions, simplified, or rewrote the code myself. I find that typing it out myself rather than blindly copy pasting forces me to slow down and think about it more |
+| ChatGPT | Generated the equations for loss functions that are present in this markdown | The equation renders correctly with no mathematical errors that I can identify |
