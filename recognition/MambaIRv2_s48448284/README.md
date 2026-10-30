@@ -43,7 +43,7 @@ For the *baseline CNN* model, a basic autoencoder structure was used, the encode
 
 *MambaIRv2 (Light)*: MambaIRv2 is a state-space model for image restoration, particularly for denoising and resizing purposes. The 'light' version is smaller than the base model with less embeded dimensions and was chosen so that training could perform quicker. The core building block of MambaIRv2 models is the Aggregated Selective State-space Block (ASSB). The structure shown in the diagram below
 
-![Mamba flowchart](figures\MambaIRv2_architecture.jpg)
+![Mamba flowchart](figures/MambaIRv2_architecture.jpg)
 
 ASSB blocks contain:
 - Window Multi-Head Self-Attention (Window-MHSA): uses non-overlapping windows to capture local spatial context
@@ -211,7 +211,7 @@ L1+Sat is a compromise between PSNR and colorfulness (22.25) at a small cost in 
 
 
 ### Qualitatively
-![CNN colourisation results](figures\CNN\base_colourisation_results_lsat.png)
+![CNN colourisation results](figures/CNN/base_colourisation_results_lsat.png)
 
 Qualitatively, all the CNN variants produce muted, brownish colors in ambiguous regions (food, indoor scenes), confirming that a simple encoder-decoder lacks the global context required for plausible colourisation. This results in the application of MambaIRv2’s global receptive field. Though blue sky output were achieved from time-to-time.
 
@@ -239,7 +239,7 @@ accumulated in the training loop (the loss was computed and backpropagated corre
 only the variable was affected). This was discovered after all training was 
 complete and does not affect model weights or validation metrics.
 
-![training_all_4](figures\training\training_all_4.png)
+![training_all_4](figures/training/training_all_4.png)
 
 The validation loss curves show smooth convergence for all four models with no signs of 
 overfitting within 50 epochs, suggesting more epochs could further improve results. 
@@ -251,10 +251,10 @@ in the background during one training session.
 
 | Finetuned l1_sat | Finetuned lpips | Notes |
 |------------------|-----------------|----|
-| ![Bridge_l1_sat_colourised](test-data\results-short-fine-lsat\G_1_colourised.png)  | ![Bridge_lpips_colourised](test-data\results-short-fine-lpips\G_1_colourised.png)   |Both models i dentify a strong blue sky, and a teal-grey river. These are both strong. |
-| ![Lighthouse_lsat](test-data\results-short-fine-lsat\G_3_colourised.png)   |![Lighthouse_lpips](test-data\results-short-fine-lpips\G_3_colourised.png) | The sky and water are both redered blue. The l1_sat model seems to be more saturated here. Both models produce a desaturated foreground. |
-| ![Basket_l1_sat](test-data\results-short-fine-lsat\G_10_colourised.png)  | ![Basket_lpips](test-data\results-short-fine-lpips\G_10_colourised.png)   | Both models have failed severly here, with inconsistent colour splotches, chromatic hallucination, and desaturated output. |
-| ![Bird_l1_sat](test-data\results-short-fine-lsat\G_22_colourised.png)  | ![Bird_lpips](test-data\results-short-fine-lpips\G_22_colourised.png)   | Both the flowers and the bird are incorrectly coloured, due to the models not knowing what colour they should be. L1_sat has attempted a blue sky, however does not correctly identify all areas of the sky |
+| ![Bridge_l1_sat_colourised](test-data/results-short-fine-lsat/G_1_colourised.png)  | ![Bridge_lpips_colourised](test-data/results-short-fine-lpips/G_1_colourised.png)   |Both models i dentify a strong blue sky, and a teal-grey river. These are both strong. |
+| ![Lighthouse_lsat](test-data/results-short-fine-lsat/G_3_colourised.png)   |![Lighthouse_lpips](test-data/results-short-fine-lpips/G_3_colourised.png) | The sky and water are both redered blue. The l1_sat model seems to be more saturated here. Both models produce a desaturated foreground. |
+| ![Basket_l1_sat](test-data/results-short-fine-lsat/G_10_colourised.png)  | ![Basket_lpips](test-data/results-short-fine-lpips/G_10_colourised.png)   | Both models have failed severly here, with inconsistent colour splotches, chromatic hallucination, and desaturated output. |
+| ![Bird_l1_sat](test-data/results-short-fine-lsat/G_22_colourised.png)  | ![Bird_lpips](test-data/results-short-fine-lpips/G_22_colourised.png)   | Both the flowers and the bird are incorrectly coloured, due to the models not knowing what colour they should be. L1_sat has attempted a blue sky, however does not correctly identify all areas of the sky |
 
 
 ## Improving results
@@ -283,10 +283,10 @@ Unfortunately, improvements are marginal. While PSNR and LPIPS have improved, SS
 ### Qualitatively
 | Previous Finetuned l1_sat | More data finetuned l1_sat | Notes|
 |--------------------------|-------------------------| ----|
-| ![Bridge_l1_sat_colourised](test-data\results-short-fine-lsat\G_1_colourised.png)  | ![Bridge_more](test-data\results-data-l1_sat-last\G_1_colourised.png)  | The new model produces slightly warmer tones in the background, however the sky and water is much less saturated.
-| ![Lighthouse_lsat](test-data\results-short-fine-lsat\G_3_colourised.png)   |![Lighthouse_more](test-data\results-data-l1_sat-last\G_3_colourised.png) | This image has become a lot better, the sky is more blue, the water is more realistic, and the foreground has also improved slighly
-|  ![flower_lsat](test-data\results-short-fine-lsat\G_13_colourised.png)  | ![flower_more](test-data\results-data-l1_sat-last\G_13_colourised.png)   | These flowers seem quite desaturated despite the increase in training data. Surrounding environment is more vibrantly green. COCO does not have many floral images.
-|  ![kitchen_lsat](test-data\results-short-fine-lsat\G_7_colourised.png)  | ![kitchen_more](test-data\results-data-l1_sat-last\G_7_colourised.png)   | Output is mroe desaturated. The infoor environment is rendered with very warm tones, COCO training data contains many indoor scenes with warm lighting.
+| ![Bridge_l1_sat_colourised](test-data/results-short-fine-lsat/G_1_colourised.png)  | ![Bridge_more](test-data/results-data-l1_sat-last/G_1_colourised.png)  | The new model produces slightly warmer tones in the background, however the sky and water is much less saturated.
+| ![Lighthouse_lsat](test-data/results-short-fine-lsat/G_3_colourised.png)   |![Lighthouse_more](test-data/results-data-l1_sat-last/G_3_colourised.png) | This image has become a lot better, the sky is more blue, the water is more realistic, and the foreground has also improved slighly
+|  ![flower_lsat](test-data/results-short-fine-lsat/G_13_colourised.png)  | ![flower_more](test-data/results-data-l1_sat-last/G_13_colourised.png)   | These flowers seem quite desaturated despite the increase in training data. Surrounding environment is more vibrantly green. COCO does not have many floral images.
+|  ![kitchen_lsat](test-data/results-short-fine-lsat/G_7_colourised.png)  | ![kitchen_more](test-data/results-data-l1_sat-last/G_7_colourised.png)   | Output is mroe desaturated. The infoor environment is rendered with very warm tones, COCO training data contains many indoor scenes with warm lighting.
 
 
 
