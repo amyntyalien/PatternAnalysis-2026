@@ -22,7 +22,7 @@ import lpips as lpips_lib
  
 from dataset import get_dataloaders, denormalise_L, denormalise_ab, lab_to_rgb
 from modules import MambaIRv2Frozen, MambaIRv2FineTuned, L1_Saturation_Loss, LPIPS_Loss
-
+from predict import visualise_results
 
 
 matplotlib.use('Agg')
@@ -176,7 +176,7 @@ def train(
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     CKPT_DIR.mkdir(parents=True, exist_ok=True)
  
-    run_name  = f"{'frozen' if frozen else 'more_finetuned'}_{loss}"
+    run_name  = f"{'frozen' if frozen else 'fruit_finetuned'}_{loss}"
     best_path = MODELS_DIR / f"{run_name}_best.pth"
     last_path = MODELS_DIR / f"{run_name}_last.pth"
 
@@ -364,27 +364,30 @@ def train(
 if __name__ == "__main__":
     loss_name = "l1_sat"
     frozen = False
-    resume = "recognition/MambaIRv2_s48448284/models/more_finetuned_l1_sat_best.pth"
+    resume = "recognition/MambaIRv2_s48448284/models/fruit_finetuned_lpips.pth"
     for i in range(1):
-        if i%2==0:
-            loss_name = "l1_sat"
-        else:
-            loss_name = "lpips"
-            resume = None
+       
+        loss_name = "lpips"
+        resume = None
 
 
         
-        model, history = train(frozen, loss_name, batch_size=1, num_workers=0, resume= resume)
+        model, history = train(frozen, loss_name, batch_size=1, num_workers=0, epochs= 25, resume= resume)
 
         final_psnr = history['val_psnr'][-1]
         final_ssim = history['val_ssim'][-1]
         best_psnr  = max(history['val_psnr'])
         print(f"\n{'='*55}")
-        model_str = 'frozen' if frozen else 'more_finetuned'
+        model_str = 'frozen' if frozen else 'fruit_finetuned'
         print(f"Run: {model_str}_{loss_name}")
         print(f"Final PSNR: {final_psnr:.4f} dB   Best PSNR: {best_psnr:.4f} dB")
         print(f"Final SSIM: {final_ssim:.4f}")
         print(f"{'='*55}")
+
+
+        _, _, test_loader = get_dataloaders()
+        visualise_results(model, test_loader, "recognition/MambaIRv2_s48448284/models/fruit_finetuned_lpips.pth", save_path="recognition/MambaIRv2_s48448284/figures")
+        
 
     print("ALLLLL DONE!")
 
